@@ -132,18 +132,22 @@
 
     /* ── HERO PIN WRAPPER ──────────────────────────────────── */
     .hero-pin {
-      height: 250vh; /* 150vh of scroll = animation range */
+      height: 380vh;
       position: relative;
+    }
+    /* The sticky viewport — stays at top while hero-pin scrolls */
+    .hero-sticky {
+      position: sticky; top: 0;
+      height: 100vh;
+      overflow: hidden; /* clips reel during animation */
     }
 
     /* ── HERO ──────────────────────────────────────────────── */
     .hero {
-      height: 100vh;
-      position: sticky; top: 0;
+      height: 100%;
       display: flex; flex-direction: column; justify-content: flex-end;
       padding: 120px var(--pad-x) clamp(48px, 7vw, 88px);
-      position: sticky; top: 0; /* intentional repeat to override relative */
-      overflow: visible;
+      position: relative;
     }
     .hero-eyebrow {
       font-size: 11px; font-weight: 300;
@@ -184,25 +188,21 @@
       writing-mode: vertical-rl;
     }
     /* ── HERO REEL THUMB ───────────────────────────────────── */
-    .reel-anchor {
+    .reel-thumb {
       position: absolute;
       right: clamp(24px, 6vw, 96px);
       bottom: clamp(48px, 7vw, 88px);
       width: clamp(180px, 20vw, 260px);
-      aspect-ratio: 16 / 9;
-      pointer-events: none;
-    }
-    .reel-thumb {
-      position: absolute; inset: 0;
+      aspect-ratio: 16 / 9; /* holds shape before JS takes over */
       border-radius: 6px; overflow: hidden;
       background: var(--bg-card);
-      border: 1px solid rgba(244, 241, 228, 0.18);
-      z-index: 50; pointer-events: all;
+      z-index: 20; pointer-events: all;
       cursor: none;
     }
     .reel-thumb iframe {
-      position: absolute; inset: 0;
-      width: 100%; height: 100%;
+      position: absolute;
+      top: -2px; left: -2px;
+      width: calc(100% + 4px); height: calc(100% + 4px);
       border: none; pointer-events: none;
     }
     .reel-play {
@@ -227,6 +227,69 @@
       color: rgba(244, 241, 228, 0.55);
       white-space: nowrap; z-index: 11;
       transition: opacity 0.3s ease;
+    }
+
+    /* ── REEL OVERLAY BAR ──────────────────────────────────── */
+    .reel-overlay {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: clamp(20px, 3vh, 40px) clamp(28px, 3.5vw, 56px);
+      opacity: 0; z-index: 25;
+      pointer-events: none;
+    }
+    .reel-overlay.active { pointer-events: all; }
+    .ro-brand {
+      font-family: 'Anton', sans-serif;
+      font-size: clamp(20px, 2vw, 30px);
+      text-transform: uppercase; letter-spacing: 0.04em;
+      color: var(--text); font-weight: 400;
+      font-synthesis: none; -webkit-font-smoothing: antialiased;
+      white-space: nowrap;
+    }
+    .ro-center {
+      display: flex; align-items: center; gap: 10px;
+    }
+    .ro-play-btn {
+      display: flex; align-items: center; justify-content: center; gap: 9px;
+      height: 44px; padding: 0 22px;
+      background: rgba(244, 241, 228, 0.14);
+      backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(244, 241, 228, 0.2);
+      color: var(--text); border-radius: 100px;
+      font-family: 'Open Sans', sans-serif;
+      font-size: 12px; font-weight: 400; line-height: 1;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      cursor: none; white-space: nowrap;
+      transition: background 0.3s ease;
+    }
+    .ro-play-btn:hover { background: rgba(244, 241, 228, 0.22); }
+    .ro-share-btn {
+      display: flex; align-items: center; justify-content: center;
+      width: 44px; height: 44px; border-radius: 4px; flex-shrink: 0;
+      background: rgba(244, 241, 228, 0.14);
+      backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(244, 241, 228, 0.2);
+      color: var(--text); cursor: none;
+      transition: background 0.3s ease;
+    }
+    .ro-share-btn:hover { background: rgba(244, 241, 228, 0.22); }
+    .ro-brand, .ro-time {
+      line-height: 1; display: flex; align-items: center;
+    }
+    .ro-time {
+      font-size: clamp(16px, 1.8vw, 24px);
+      color: var(--text); letter-spacing: 0.06em;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    /* Fade-to-black overlay behind the expanding video */
+    .reel-backdrop {
+      position: absolute; inset: 0;
+      background: #0d0d0d;
+      opacity: 0;
+      z-index: 15; /* above hero text, below reel-thumb (z-index:20) */
+      pointer-events: none;
     }
 
     .scroll-line {
@@ -933,44 +996,68 @@
 
 <!-- ── HERO (scroll-pinned) ─────────────────────────────────── -->
 <div class="hero-pin" id="heroPin">
-  <section class="hero">
-    <p class="hero-eyebrow reveal">Financial Brand — Spring 2026</p>
-    <h1 class="hero-headline reveal d1">
-      Many credit<br>
-      unions have<br>
-      real advantages.<br>
-      <span class="serif-italic">Most are invisible.</span>
-    </h1>
-    <div class="hero-bottom reveal d2">
-      <p class="hero-descriptor">
-        When advantages are invisible, preference never forms — and growth stalls.
-        JXM engineers the visibility that turns institutional advantages into measurable membership growth.
-      </p>
-      <div class="hero-scroll" aria-hidden="true">
-        <span class="hero-scroll-label">Scroll</span>
-        <div class="scroll-line"></div>
+  <div class="hero-sticky" id="heroSticky">
+
+    <section class="hero">
+      <p class="hero-eyebrow reveal">Financial Brand — Spring 2026</p>
+      <h1 class="hero-headline reveal d1">
+        Many credit<br>
+        unions have<br>
+        real advantages.<br>
+        <span class="serif-italic">Most are invisible.</span>
+      </h1>
+      <div class="hero-bottom reveal d2">
+        <p class="hero-descriptor">
+          When advantages are invisible, preference never forms — and growth stalls.
+          JXM engineers the visibility that turns institutional advantages into measurable membership growth.
+        </p>
+        <div class="hero-scroll" aria-hidden="true">
+          <span class="hero-scroll-label">Scroll</span>
+          <div class="scroll-line"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Fade-to-black backdrop -->
+    <div class="reel-backdrop" id="reelBackdrop"></div>
+
+    <!-- Reel: absolute inside sticky, JS drives left/top/width/height -->
+    <div class="reel-thumb" id="reelThumb">
+      <iframe
+        src="https://player.vimeo.com/video/477292740?h=b65827c167&background=1&loop=1&muted=1&byline=0&title=0&controls=0&dnt=1"
+        frameborder="0" allow="autoplay; fullscreen; picture-in-picture"
+        allowfullscreen title="JXM Reel"></iframe>
+      <button class="reel-play" id="reelPlay"
+              data-play="https://player.vimeo.com/video/477292740?h=b65827c167&autoplay=1&color=49e385&byline=0&title=0&dnt=1"
+              aria-label="Watch reel">
+        <svg width="15" height="19" viewBox="0 0 15 19" fill="none">
+          <path d="M1 1L14 9.5L1 18V1Z" fill="currentColor"/>
+        </svg>
+      </button>
+      <span class="reel-hint">Scroll to expand</span>
+
+      <!-- Griflan-style overlay bar -->
+      <div class="reel-overlay" id="reelOverlay">
+        <span class="ro-brand">JXM</span>
+        <div class="ro-center">
+          <button class="ro-play-btn" id="roPlayBtn">
+            <svg width="10" height="12" viewBox="0 0 10 12" fill="none" aria-hidden="true">
+              <path d="M1 1L9 6L1 11V1Z" fill="currentColor"/>
+            </svg>
+            Play Video
+          </button>
+          <button class="ro-share-btn" aria-label="Share">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+            </svg>
+          </button>
+        </div>
+        <span class="ro-time">2:00</span>
       </div>
     </div>
 
-    <!-- Reel thumbnail — animates to center on scroll -->
-    <div class="reel-anchor" id="reelAnchor">
-      <div class="reel-thumb" id="reelThumb">
-        <iframe
-          src="https://player.vimeo.com/video/477292740?h=b65827c167&background=1&loop=1&muted=1&byline=0&title=0&controls=0&dnt=1"
-          frameborder="0" allow="autoplay; fullscreen; picture-in-picture"
-          allowfullscreen title="JXM Reel"></iframe>
-        <button class="reel-play" id="reelPlay"
-                data-play="https://player.vimeo.com/video/477292740?h=b65827c167&autoplay=1&color=49e385&byline=0&title=0&dnt=1"
-                aria-label="Watch reel">
-          <svg width="15" height="19" viewBox="0 0 15 19" fill="none">
-            <path d="M1 1L14 9.5L1 18V1Z" fill="currentColor"/>
-          </svg>
-        </button>
-        <span class="reel-hint">Scroll to expand</span>
-      </div>
-    </div>
-
-  </section>
+  </div>
 </div>
 
 <!-- ── TICKER ──────────────────────────────────────────────── -->
@@ -1546,82 +1633,99 @@
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 
   // ── HERO REEL SCROLL ANIMATION ─────────────────────────────
-  const heroPin    = document.getElementById('heroPin');
-  const reelAnchor = document.getElementById('reelAnchor');
-  const reelThumb  = document.getElementById('reelThumb');
-  const reelPlay   = document.getElementById('reelPlay');
-  const reelHint   = reelThumb.querySelector('.reel-hint');
+  // Video is position:absolute inside the sticky container.
+  // JS animates left/top/width/height — no position:fixed needed.
+  // When hero-pin ends, sticky releases and the whole block scrolls
+  // away naturally, as if the video was always part of the page.
+  const heroPin      = document.getElementById('heroPin');
+  const reelThumb    = document.getElementById('reelThumb');
+  const reelPlay     = document.getElementById('reelPlay');
+  const reelBackdrop = document.getElementById('reelBackdrop');
+  const reelHint     = reelThumb.querySelector('.reel-hint');
+  const reelOverlay  = document.getElementById('reelOverlay');
 
-  // Cubic ease-out
   function easeOut3(t) { return 1 - Math.pow(1 - t, 3); }
 
-  // Store initial thumb styles for reset
-  const reelBaseStyle = 'position:absolute;inset:0;border-radius:6px;overflow:hidden;' +
-    'background:var(--bg-card);border:1px solid rgba(244,241,228,0.18);z-index:50;';
+  // Cache initial rect once (captured after first paint)
+  let reelStart = null;
+
+  function captureReelStart() {
+    const rect = reelThumb.getBoundingClientRect();
+    reelStart = { l: rect.left, t: rect.top, w: rect.width, h: rect.height };
+    // Switch from CSS right/bottom to explicit left/top so JS can interpolate
+    reelThumb.style.right  = 'auto';
+    reelThumb.style.bottom = 'auto';
+    reelThumb.style.left   = reelStart.l + 'px';
+    reelThumb.style.top    = reelStart.t + 'px';
+    reelThumb.style.width  = reelStart.w + 'px';
+    reelThumb.style.height = reelStart.h + 'px';
+  }
 
   function updateHeroReel() {
-    const pinRect = heroPin.getBoundingClientRect();
-    const scrolled = -pinRect.top; // px scrolled past the top of the pin
+    if (!reelStart) captureReelStart();
+
+    const pinRect  = heroPin.getBoundingClientRect();
+    const scrolled = -pinRect.top;
     const range    = heroPin.offsetHeight - window.innerHeight;
 
     if (scrolled <= 0) {
-      reelThumb.style.cssText = reelBaseStyle;
-      reelPlay.style.opacity  = '0';
-      reelPlay.style.transform = 'translate(-50%, -50%) scale(0.7)';
+      reelThumb.style.left         = reelStart.l + 'px';
+      reelThumb.style.top          = reelStart.t + 'px';
+      reelThumb.style.width        = reelStart.w + 'px';
+      reelThumb.style.height       = reelStart.h + 'px';
+      reelThumb.style.borderRadius = '6px';
+      reelPlay.style.opacity       = '0';
+      reelPlay.style.transform     = 'translate(-50%, -50%) scale(0.7)';
+      reelBackdrop.style.opacity   = '0';
+      reelOverlay.style.opacity    = '0';
+      reelOverlay.classList.remove('active');
       if (reelHint) reelHint.style.opacity = '1';
       return;
     }
 
     const progress = Math.min(1, scrolled / range);
     const ease     = easeOut3(progress);
-
     const vw = window.innerWidth;
     const vh = window.innerHeight;
 
-    // Anchor gives us the start position (constant while hero is sticky)
-    const ar = reelAnchor.getBoundingClientRect();
+    // Target: fill screen — constrained by 16:9 ratio within viewport
+    const maxW = vw * 0.96;
+    const maxH = vh * 0.92;
+    const tW   = Math.min(maxW, maxH * (16 / 9));
+    const tH   = tW * (9 / 16);
+    const tL   = (vw - tW) / 2;
+    const tTop = (vh - tH) / 2;
 
-    // Target: nearly full screen, centered
-    const tW = Math.min(vw * 0.86, 1080);
-    const tH = tW * (9 / 16);
-    const tX = (vw - tW) / 2;
-    const tY = (vh - tH) / 2;
+    reelThumb.style.left         = (reelStart.l + (tL   - reelStart.l) * ease).toFixed(1) + 'px';
+    reelThumb.style.top          = (reelStart.t + (tTop - reelStart.t) * ease).toFixed(1) + 'px';
+    reelThumb.style.width        = (reelStart.w + (tW   - reelStart.w) * ease).toFixed(1) + 'px';
+    reelThumb.style.height       = (reelStart.h + (tH   - reelStart.h) * ease).toFixed(1) + 'px';
+    reelThumb.style.borderRadius = (6 * (1 - ease)).toFixed(1) + 'px';
 
-    const cW = ar.width  + (tW - ar.width)  * ease;
-    const cH = ar.height + (tH - ar.height) * ease;
-    const cX = ar.left   + (tX - ar.left)   * ease;
-    const cY = ar.top    + (tY - ar.top)    * ease;
-    const r  = 6 * (1 - ease);
+    // Backdrop only starts after 8% scroll so video is clearly visible on load
+    const backdropP = Math.max(0, (progress - 0.08) / 0.92);
+    reelBackdrop.style.opacity = (easeOut3(backdropP) * 0.92).toFixed(3);
 
-    reelThumb.style.cssText = [
-      'position:fixed',
-      `left:${cX.toFixed(1)}px`,
-      `top:${cY.toFixed(1)}px`,
-      `width:${cW.toFixed(1)}px`,
-      `height:${cH.toFixed(1)}px`,
-      `border-radius:${r.toFixed(1)}px`,
-      'overflow:hidden',
-      'background:var(--bg-card)',
-      'border:1px solid rgba(244,241,228,0.18)',
-      'z-index:500',
-      'transition:none'
-    ].join(';');
-
-    // Play button fades in over last 30% of animation
+    // Play button + overlay bar fade in over last 30%
     const btnP = Math.max(0, (progress - 0.70) / 0.30);
     reelPlay.style.opacity   = btnP.toFixed(3);
     reelPlay.style.transform = `translate(-50%, -50%) scale(${(0.7 + btnP * 0.3).toFixed(3)})`;
-
-    // Hint fades out quickly
-    if (reelHint) reelHint.style.opacity = Math.max(0, 1 - progress * 6).toFixed(3);
+    reelOverlay.style.opacity = btnP.toFixed(3);
+    if (btnP > 0) reelOverlay.classList.add('active');
+    else reelOverlay.classList.remove('active');
+    if (reelHint) reelHint.style.opacity = Math.max(0, 1 - progress * 5).toFixed(3);
   }
 
   window.addEventListener('scroll', updateHeroReel, { passive: true });
-  window.addEventListener('resize', updateHeroReel,  { passive: true });
-  updateHeroReel(); // run once on load
+  window.addEventListener('resize', () => { reelStart = null; updateHeroReel(); }, { passive: true });
+  updateHeroReel();
 
-  // Wire reel play button to the lightbox
   reelPlay.addEventListener('click', e => {
+    e.stopPropagation();
+    openModal(reelPlay.dataset.play);
+  });
+
+  document.getElementById('roPlayBtn').addEventListener('click', e => {
     e.stopPropagation();
     openModal(reelPlay.dataset.play);
   });
@@ -1741,4 +1845,3 @@
 
 </body>
 </html>
-
