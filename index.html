@@ -762,6 +762,71 @@
       .cursor { display: none; }
     }
 
+    /* ── SCROLL-DRIVEN WORK SCALE ─────────────────────────── */
+    .work-item {
+      will-change: transform, opacity;
+      /* JS controls transform & opacity — no reveal transition */
+    }
+
+    /* Play button overlay */
+    .play-btn {
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%) scale(0.75);
+      width: 72px; height: 72px; border-radius: 50%;
+      background: rgba(17, 17, 17, 0.55);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(244, 241, 228, 0.22);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 10; cursor: none;
+      opacity: 0;
+      transition: opacity 0.3s ease, transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                  background 0.3s ease, border-color 0.3s ease;
+    }
+    .fpo-img:hover .play-btn,
+    .video-block:hover .play-btn { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    .play-btn:hover {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+    .play-btn svg { color: var(--text); margin-left: 4px; transition: color 0.3s ease; }
+    .play-btn:hover svg { color: var(--bg); }
+
+    /* Video lightbox modal */
+    .v-modal {
+      position: fixed; inset: 0; z-index: 20000;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.4s ease;
+    }
+    .v-modal.open { opacity: 1; pointer-events: all; }
+    .v-modal-backdrop {
+      position: absolute; inset: 0;
+      background: rgba(11, 11, 11, 0.94);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+    }
+    .v-modal-inner {
+      position: relative; z-index: 1;
+      width: min(90vw, 1120px);
+      aspect-ratio: 16 / 9;
+    }
+    .v-modal-close {
+      position: absolute; top: -44px; right: 0;
+      display: flex; align-items: center; gap: 8px;
+      font-size: 10px; font-weight: 300;
+      letter-spacing: 0.3em; text-transform: uppercase;
+      color: var(--muted); background: none; border: none;
+      cursor: none; padding: 6px 0;
+      transition: color 0.3s ease;
+    }
+    .v-modal-close:hover { color: var(--text); }
+    .v-modal-close svg { opacity: 0.6; }
+    .v-modal-inner iframe {
+      width: 100%; height: 100%; border: none;
+      border-radius: 3px; display: block;
+    }
+
     /* ── VIDEO ON SCROLL ───────────────────────────────────── */
     .video-block { position: relative; overflow: hidden; }
     .video-block video,
@@ -1101,13 +1166,18 @@
     </h2>
     <div class="work-grid">
 
-      <div class="work-item reveal" data-cursor="view">
+      <div class="work-item" data-cursor="view">
         <div class="fpo-img ratio-wide video-block"
              data-vimeo="https://player.vimeo.com/video/477292740?h=b65827c167&background=1&loop=1&muted=1&byline=0&title=0&controls=0&dnt=1">
           <div class="fpo-cross"></div>
           <span class="fpo-tag">[Loading reel…]</span>
           <iframe frameborder="0" allow="autoplay; fullscreen; picture-in-picture"
                   allowfullscreen title="JXM Reel"></iframe>
+          <button class="play-btn"
+                  data-play="https://player.vimeo.com/video/477292740?h=b65827c167&autoplay=1&color=49e385&byline=0&title=0&dnt=1"
+                  aria-label="Play video">
+            <svg width="16" height="20" viewBox="0 0 16 20" fill="none"><path d="M1 1L15 10L1 19V1Z" fill="currentColor"/></svg>
+          </button>
         </div>
         <div class="work-meta">
           <div class="work-client">Advia Credit Union</div>
@@ -1115,11 +1185,14 @@
         </div>
       </div>
 
-      <div class="work-item reveal d2" data-cursor="view">
+      <div class="work-item" data-cursor="view">
         <div class="fpo-img ratio-tall video-block" data-video-src="">
           <div class="fpo-cross"></div>
           <span class="fpo-tag">[FPO — Northwest Federal portrait or brand moment]</span>
           <video muted loop playsinline preload="none"></video>
+          <button class="play-btn" aria-label="Play video">
+            <svg width="16" height="20" viewBox="0 0 16 20" fill="none"><path d="M1 1L15 10L1 19V1Z" fill="currentColor"/></svg>
+          </button>
         </div>
         <div class="work-meta">
           <div class="work-client">Northwest Federal</div>
@@ -1127,11 +1200,14 @@
         </div>
       </div>
 
-      <div class="work-item reveal" data-cursor="view">
+      <div class="work-item" data-cursor="view">
         <div class="fpo-img ratio-tall video-block" data-video-src="">
           <div class="fpo-cross"></div>
           <span class="fpo-tag">[FPO — Michigan Dental Association video still]</span>
           <video muted loop playsinline preload="none"></video>
+          <button class="play-btn" aria-label="Play video">
+            <svg width="16" height="20" viewBox="0 0 16 20" fill="none"><path d="M1 1L15 10L1 19V1Z" fill="currentColor"/></svg>
+          </button>
         </div>
         <div class="work-meta">
           <div class="work-client">Michigan Dental Assoc.</div>
@@ -1139,11 +1215,14 @@
         </div>
       </div>
 
-      <div class="work-item reveal d2" data-cursor="view">
+      <div class="work-item" data-cursor="view">
         <div class="fpo-img ratio-wide video-block" data-video-src="">
           <div class="fpo-cross"></div>
           <span class="fpo-tag">[FPO — Post brand photography or campaign visual]</span>
           <video muted loop playsinline preload="none"></video>
+          <button class="play-btn" aria-label="Play video">
+            <svg width="16" height="20" viewBox="0 0 16 20" fill="none"><path d="M1 1L15 10L1 19V1Z" fill="currentColor"/></svg>
+          </button>
         </div>
         <div class="work-meta">
           <div class="work-client">Post</div>
@@ -1292,6 +1371,21 @@
   </div>
 </footer>
 
+<!-- ── VIDEO LIGHTBOX MODAL ────────────────────────────────── -->
+<div class="v-modal" id="vModal" role="dialog" aria-modal="true" aria-label="Video player">
+  <div class="v-modal-backdrop" id="vModalBackdrop"></div>
+  <div class="v-modal-inner">
+    <button class="v-modal-close" id="vModalClose">
+      <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+        <line x1="1" y1="1" x2="9" y2="9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="9" y1="1" x2="1" y2="9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      Close
+    </button>
+    <iframe id="vModalIframe" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+  </div>
+</div>
+
 <script>
   // ── NAV SCROLL ──────────────────────────────────────────────
   const nav = document.getElementById('nav');
@@ -1309,7 +1403,34 @@
     });
   }, { threshold: 0.12 });
 
+  // Work items are excluded — scroll JS drives them instead
   document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+  // ── SCROLL-DRIVEN WORK ITEM SCALE ──────────────────────────
+  const workItems  = document.querySelectorAll('.work-item');
+  const MIN_SCALE  = 0.82;
+
+  function updateWorkScale() {
+    const viewH = window.innerHeight;
+    workItems.forEach(item => {
+      const rect    = item.getBoundingClientRect();
+      const center  = rect.top + rect.height * 0.5;
+      // 0 → element center is 110% down the viewport (below fold)
+      // 1 → element center is at 45% of viewport height (comfortable read zone)
+      const raw     = (viewH * 1.08 - center) / (viewH * 0.63);
+      const p       = Math.max(0, Math.min(1, raw));
+      const scale   = MIN_SCALE + (1 - MIN_SCALE) * p;
+      const ty      = (1 - p) * 48;
+      const opacity = Math.min(1, p * 1.6);
+      item.style.transform = `scale(${scale.toFixed(4)}) translateY(${ty.toFixed(2)}px)`;
+      item.style.opacity   = opacity.toFixed(4);
+    });
+  }
+
+  // Initialise positions before first paint
+  updateWorkScale();
+  window.addEventListener('scroll', updateWorkScale, { passive: true });
+  window.addEventListener('resize', updateWorkScale, { passive: true });
 
   // ── ACCORDION ──────────────────────────────────────────────
   function toggleAcc(header) {
@@ -1318,6 +1439,36 @@
     document.querySelectorAll('.acc-item.open').forEach(i => i.classList.remove('open'));
     if (!isOpen) item.classList.add('open');
   }
+
+  // ── VIDEO LIGHTBOX ─────────────────────────────────────────
+  const vModal        = document.getElementById('vModal');
+  const vModalIframe  = document.getElementById('vModalIframe');
+  const vModalClose   = document.getElementById('vModalClose');
+  const vModalBackdrop = document.getElementById('vModalBackdrop');
+
+  function openModal(src) {
+    vModalIframe.src = src;
+    vModal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal() {
+    vModal.classList.remove('open');
+    // Small delay so fade-out plays before src is cleared
+    setTimeout(() => { vModalIframe.src = ''; }, 420);
+    document.body.style.overflow = '';
+  }
+
+  document.querySelectorAll('.play-btn[data-play]').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      openModal(btn.dataset.play);
+    });
+  });
+
+  vModalClose.addEventListener('click', closeModal);
+  vModalBackdrop.addEventListener('click', closeModal);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 
   // ── CUSTOM CURSOR ──────────────────────────────────────────
   const cursor    = document.getElementById('cursor');
