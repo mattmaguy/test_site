@@ -130,12 +130,20 @@
     }
     .nav-cta:hover { opacity: 0.84; transform: translateY(-1px); }
 
+    /* ── HERO PIN WRAPPER ──────────────────────────────────── */
+    .hero-pin {
+      height: 250vh; /* 150vh of scroll = animation range */
+      position: relative;
+    }
+
     /* ── HERO ──────────────────────────────────────────────── */
     .hero {
-      min-height: 100vh;
+      height: 100vh;
+      position: sticky; top: 0;
       display: flex; flex-direction: column; justify-content: flex-end;
       padding: 120px var(--pad-x) clamp(48px, 7vw, 88px);
-      position: relative; overflow: hidden;
+      position: sticky; top: 0; /* intentional repeat to override relative */
+      overflow: visible;
     }
     .hero-eyebrow {
       font-size: 11px; font-weight: 300;
@@ -175,6 +183,52 @@
       text-transform: uppercase; color: var(--muted);
       writing-mode: vertical-rl;
     }
+    /* ── HERO REEL THUMB ───────────────────────────────────── */
+    .reel-anchor {
+      position: absolute;
+      right: clamp(24px, 6vw, 96px);
+      bottom: clamp(48px, 7vw, 88px);
+      width: clamp(180px, 20vw, 260px);
+      aspect-ratio: 16 / 9;
+      pointer-events: none;
+    }
+    .reel-thumb {
+      position: absolute; inset: 0;
+      border-radius: 6px; overflow: hidden;
+      background: var(--bg-card);
+      border: 1px solid rgba(244, 241, 228, 0.18);
+      z-index: 50; pointer-events: all;
+      cursor: none;
+    }
+    .reel-thumb iframe {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      border: none; pointer-events: none;
+    }
+    .reel-play {
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%) scale(0.7);
+      width: 64px; height: 64px; border-radius: 50%;
+      background: rgba(17, 17, 17, 0.62);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(244, 241, 228, 0.25);
+      display: flex; align-items: center; justify-content: center;
+      cursor: none; z-index: 10; opacity: 0;
+      transition: background 0.3s ease, border-color 0.3s ease;
+    }
+    .reel-play:hover { background: var(--accent); border-color: var(--accent); }
+    .reel-play:hover svg { color: var(--bg); }
+    .reel-play svg { color: var(--text); margin-left: 4px; transition: color 0.3s ease; }
+    .reel-hint {
+      position: absolute; bottom: 10px; left: 50%;
+      transform: translateX(-50%);
+      font-size: 9px; letter-spacing: 0.24em; text-transform: uppercase;
+      color: rgba(244, 241, 228, 0.55);
+      white-space: nowrap; z-index: 11;
+      transition: opacity 0.3s ease;
+    }
+
     .scroll-line {
       width: 1px; height: 56px;
       background: var(--border); position: relative; overflow: hidden;
@@ -877,26 +931,47 @@
   </div>
 </nav>
 
-<!-- ── HERO ────────────────────────────────────────────────── -->
-<section class="hero">
-  <p class="hero-eyebrow reveal">Financial Brand — Spring 2026</p>
-  <h1 class="hero-headline reveal d1">
-    Many credit<br>
-    unions have<br>
-    real advantages.<br>
-    <span class="serif-italic">Most are invisible.</span>
-  </h1>
-  <div class="hero-bottom reveal d2">
-    <p class="hero-descriptor">
-      When advantages are invisible, preference never forms — and growth stalls.
-      JXM engineers the visibility that turns institutional advantages into measurable membership growth.
-    </p>
-    <div class="hero-scroll" aria-hidden="true">
-      <span class="hero-scroll-label">Scroll</span>
-      <div class="scroll-line"></div>
+<!-- ── HERO (scroll-pinned) ─────────────────────────────────── -->
+<div class="hero-pin" id="heroPin">
+  <section class="hero">
+    <p class="hero-eyebrow reveal">Financial Brand — Spring 2026</p>
+    <h1 class="hero-headline reveal d1">
+      Many credit<br>
+      unions have<br>
+      real advantages.<br>
+      <span class="serif-italic">Most are invisible.</span>
+    </h1>
+    <div class="hero-bottom reveal d2">
+      <p class="hero-descriptor">
+        When advantages are invisible, preference never forms — and growth stalls.
+        JXM engineers the visibility that turns institutional advantages into measurable membership growth.
+      </p>
+      <div class="hero-scroll" aria-hidden="true">
+        <span class="hero-scroll-label">Scroll</span>
+        <div class="scroll-line"></div>
+      </div>
     </div>
-  </div>
-</section>
+
+    <!-- Reel thumbnail — animates to center on scroll -->
+    <div class="reel-anchor" id="reelAnchor">
+      <div class="reel-thumb" id="reelThumb">
+        <iframe
+          src="https://player.vimeo.com/video/477292740?h=b65827c167&background=1&loop=1&muted=1&byline=0&title=0&controls=0&dnt=1"
+          frameborder="0" allow="autoplay; fullscreen; picture-in-picture"
+          allowfullscreen title="JXM Reel"></iframe>
+        <button class="reel-play" id="reelPlay"
+                data-play="https://player.vimeo.com/video/477292740?h=b65827c167&autoplay=1&color=49e385&byline=0&title=0&dnt=1"
+                aria-label="Watch reel">
+          <svg width="15" height="19" viewBox="0 0 15 19" fill="none">
+            <path d="M1 1L14 9.5L1 18V1Z" fill="currentColor"/>
+          </svg>
+        </button>
+        <span class="reel-hint">Scroll to expand</span>
+      </div>
+    </div>
+
+  </section>
+</div>
 
 <!-- ── TICKER ──────────────────────────────────────────────── -->
 <div class="ticker-wrap" aria-hidden="true">
@@ -1469,6 +1544,87 @@
   vModalClose.addEventListener('click', closeModal);
   vModalBackdrop.addEventListener('click', closeModal);
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+  // ── HERO REEL SCROLL ANIMATION ─────────────────────────────
+  const heroPin    = document.getElementById('heroPin');
+  const reelAnchor = document.getElementById('reelAnchor');
+  const reelThumb  = document.getElementById('reelThumb');
+  const reelPlay   = document.getElementById('reelPlay');
+  const reelHint   = reelThumb.querySelector('.reel-hint');
+
+  // Cubic ease-out
+  function easeOut3(t) { return 1 - Math.pow(1 - t, 3); }
+
+  // Store initial thumb styles for reset
+  const reelBaseStyle = 'position:absolute;inset:0;border-radius:6px;overflow:hidden;' +
+    'background:var(--bg-card);border:1px solid rgba(244,241,228,0.18);z-index:50;';
+
+  function updateHeroReel() {
+    const pinRect = heroPin.getBoundingClientRect();
+    const scrolled = -pinRect.top; // px scrolled past the top of the pin
+    const range    = heroPin.offsetHeight - window.innerHeight;
+
+    if (scrolled <= 0) {
+      reelThumb.style.cssText = reelBaseStyle;
+      reelPlay.style.opacity  = '0';
+      reelPlay.style.transform = 'translate(-50%, -50%) scale(0.7)';
+      if (reelHint) reelHint.style.opacity = '1';
+      return;
+    }
+
+    const progress = Math.min(1, scrolled / range);
+    const ease     = easeOut3(progress);
+
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+
+    // Anchor gives us the start position (constant while hero is sticky)
+    const ar = reelAnchor.getBoundingClientRect();
+
+    // Target: nearly full screen, centered
+    const tW = Math.min(vw * 0.86, 1080);
+    const tH = tW * (9 / 16);
+    const tX = (vw - tW) / 2;
+    const tY = (vh - tH) / 2;
+
+    const cW = ar.width  + (tW - ar.width)  * ease;
+    const cH = ar.height + (tH - ar.height) * ease;
+    const cX = ar.left   + (tX - ar.left)   * ease;
+    const cY = ar.top    + (tY - ar.top)    * ease;
+    const r  = 6 * (1 - ease);
+
+    reelThumb.style.cssText = [
+      'position:fixed',
+      `left:${cX.toFixed(1)}px`,
+      `top:${cY.toFixed(1)}px`,
+      `width:${cW.toFixed(1)}px`,
+      `height:${cH.toFixed(1)}px`,
+      `border-radius:${r.toFixed(1)}px`,
+      'overflow:hidden',
+      'background:var(--bg-card)',
+      'border:1px solid rgba(244,241,228,0.18)',
+      'z-index:500',
+      'transition:none'
+    ].join(';');
+
+    // Play button fades in over last 30% of animation
+    const btnP = Math.max(0, (progress - 0.70) / 0.30);
+    reelPlay.style.opacity   = btnP.toFixed(3);
+    reelPlay.style.transform = `translate(-50%, -50%) scale(${(0.7 + btnP * 0.3).toFixed(3)})`;
+
+    // Hint fades out quickly
+    if (reelHint) reelHint.style.opacity = Math.max(0, 1 - progress * 6).toFixed(3);
+  }
+
+  window.addEventListener('scroll', updateHeroReel, { passive: true });
+  window.addEventListener('resize', updateHeroReel,  { passive: true });
+  updateHeroReel(); // run once on load
+
+  // Wire reel play button to the lightbox
+  reelPlay.addEventListener('click', e => {
+    e.stopPropagation();
+    openModal(reelPlay.dataset.play);
+  });
 
   // ── CUSTOM CURSOR ──────────────────────────────────────────
   const cursor    = document.getElementById('cursor');
